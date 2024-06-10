@@ -1,0 +1,111 @@
+target: P2O5_avg_app
+
+# features
+categorical_var: [Crop_Code, Region_Name, FAOStat_area_code,
+
+                  ] 
+numerical_var: [Year, Area_report, Fert_perc, Area_fert, 
+                Area_FAOStat, 
+                Perc_Agr_Area_FAOStat, GDP_Capita_WB, GDP_perCapita_UN, Urea_Price, P_rock_Price, 
+                K2O_Price, Crop_Global_Price, Country_total_N, Country_total_P2O5, Country_total_K2O, 
+                Area_Irrig, Edu_Exp, pop_pressure, Avg_Size_Hold, Avg_Size_Hold_stand,
+                MAP, 
+                N_removal, P_removal, K_removal, N_removal_ha, P_removal_ha, K_removal_ha, Avg_sqKm,
+                K2O_perc_area,
+                P_cost, N_cost, K_cost, soil_clay, soil_ph, soil_sand, soil_silt, soil_cec,
+                soil_nitrogen, soil_ocs, AI, 
+                K2O_ha_cropland, P2O5_ha_cropland, N_ha_cropland,
+                PET, TMN, 
+                Crop_Price_Real, Crop_Price_Nominal,
+                Perc_N_Crop, Perc_P2O5_Crop, Perc_K2O_Crop,
+                n_mac_ag_ha,
+                ]
+
+
+# nicer feature names
+new_targets: {
+  P2O5_avg_app: Crop $P_2O_5$ use per ha, 
+  K2O_avg_app: Crop $K_2O$ use per ha, 
+  N_avg_app: Crop $N$ use per ha
+}
+
+new_features: {
+  Year: Year,
+  MAP: MAP,
+  PET: PET,
+  TMN: TMN,
+  AI: AI,
+  Crop_Code: Crop,
+  Region_Name: Region,
+  FAOStat_area_code: Country,
+  area_report: Area report,
+  soil_ph: Soil pH,
+  soil_cec: Soil CEC,
+  soil_nitrogen: Soil N,
+  soil_ocs: Soil OCS,
+  soil_sand: Soil sand,
+  soil_silt: Soil silt,
+  soil_clay: Soil clay,
+  fert_perc: Fertilized %,
+  Area_fert: Fertilized area,
+  Area_FAOStat: Crop area,
+  Perc_Agr_Area_FAOStat: Crop area perc,
+  Country_total_N: Country N use,
+  Country_total_P2O5: Country $P_2O_5$ use,
+  Country_total_K2O: Country $K_2O$ use,
+  Avg_Size_Hold: Holding size,
+  Avg_Size_Hold_stand: Holding size stand,
+  N_removal: Crop N content,
+  P_removal: Crop P content,
+  K_removal: Crop K content,
+  N_removal_ha: Crop N removal per ha,
+  P_removal_ha: Crop P removal per ha,
+  K_removal_ha: Crop K removal per ha,
+  K2O_ha_cropland: Country $K_2O$ per ha,
+  P2O5_ha_cropland: Country $P_2O_5$ per ha,
+  N_ha_cropland: Country N per ha,
+  Area_Irrig: Irrigation implementation,
+  n_mac_ag: Machinery use,
+  n_mac_ag_ha: Machinery use per ha,
+  GDP_perCapita_UN: GDP per capita,
+  Urea_Price: Global urea price,
+  P_rock_Price: Global P-rock price,
+  K2O_Price: Global $K_2O$ price,
+  Crop_Global_Price: Global crop price,
+  Edu_Exp: Education,
+  pop_pressure: Population pressure,
+  Avg_sqKm: Country surface,
+  K2O_perc_area: $K_2O$_perc_area,
+  P_cost: P cost from production,
+  N_cost: N cost from production,
+  K_cost: K cost from production,
+  Crop_Price_Real: National crop price,
+  Crop_Price_Nominal: Nominal crop price, 
+  Perc_P2O5_Crop: '% of $P_2O_5$ used on crop',
+  Perc_N_Crop: '% of N used on crop',
+  Perc_K2O_Crop: '% of $K_2O$ used on crop',
+}
+
+crop_codes: {
+  '1_1': Wheat,
+  '1_2': Maize,
+  '1_3': Rice,
+  '1_4': Other Cereals,
+  '2_1': Soybean,
+  '2_2': Palm fruit,
+  '2_3': Other Oilseeds,
+  '3_1': Vegetables,
+  '3_2': Fruits,
+  '4': Roots and tubers,
+  '5': Sugar crops,
+  '6': Fiber crops,
+  '7': Other crops
+}
+
+
+# data files
+csv_files : {features: X.csv,
+             K2O_avg_app: y_K.csv,
+             N_avg_app: y_N.csv,
+             P2O5_avg_app: y_P.csv,
+             }

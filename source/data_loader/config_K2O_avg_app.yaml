@@ -1,0 +1,34 @@
+target: K2O_avg_app
+
+# features
+categorical_var: [Crop_Code, Region_Name, FAOStat_area_code,
+                  ] 
+numerical_var: [Year, 
+                Area_FAOStat, 
+                Perc_Agr_Area_FAOStat, 
+                GDP_perCapita_UN,
+                K2O_Price, 
+                Crop_Global_Price, 
+                Country_total_K2O, 
+                Area_Irrig, Edu_Exp, pop_pressure,
+                Avg_Size_Hold_stand,
+                MAP, 
+                K_removal, 
+                K_removal_ha,
+                Avg_sqKm,
+                K_cost,
+                soil_clay, soil_ph, soil_sand, soil_silt, soil_cec,
+                soil_nitrogen, soil_ocs, AI, 
+                K2O_ha_cropland,
+                PET, TMN, 
+                Crop_Price_Real, 
+                Perc_K2O_Crop,
+                n_mac_ag_ha,
+                ]
+
+# data files
+csv_files : {features: X.csv,
+             K2O_avg_app: y_K.csv,
+             N_avg_app: y_N.csv,
+             P2O5_avg_app: y_P.csv,
+             }

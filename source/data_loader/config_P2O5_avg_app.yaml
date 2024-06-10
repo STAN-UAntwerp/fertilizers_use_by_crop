@@ -1,0 +1,36 @@
+target: P2O5_avg_app
+
+# features
+categorical_var: [Crop_Code, Region_Name, FAOStat_area_code,
+                  ] 
+numerical_var: [Year,
+                Area_FAOStat, 
+                Perc_Agr_Area_FAOStat, 
+                GDP_perCapita_UN,
+                P_rock_Price, 
+                Crop_Global_Price,
+                Country_total_P2O5, 
+                Area_Irrig, Edu_Exp, pop_pressure, 
+                Avg_Size_Hold_stand,
+                MAP, 
+                P_removal, 
+                P_removal_ha,
+                Avg_sqKm,
+                P_cost, 
+                soil_clay, soil_ph, soil_sand, soil_silt, soil_cec,
+                soil_nitrogen, soil_ocs, AI, 
+                P2O5_ha_cropland, 
+                PET, TMN, 
+                Crop_Price_Real, 
+                Perc_P2O5_Crop, 
+                n_mac_ag_ha,
+                ]
+
+new_features: {}
+
+# data files
+csv_files : {features: X.csv,
+             K2O_avg_app: y_K.csv,
+             N_avg_app: y_N.csv,
+             P2O5_avg_app: y_P.csv,
+             }

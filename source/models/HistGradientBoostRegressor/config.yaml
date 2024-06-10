@@ -1,0 +1,10 @@
+param_grid: 
+    max_depth: [2, 5, 10, 20]
+    max_iter: [25, 50, 100, 200, 500]
+    learning_rate: [0.01, 0.1, 0.5, 1]
+    min_samples_leaf: [5, 10, 20, 50]
+cv: 5
+n_jobs: -1
+verbose: True
+
+                                                                               
