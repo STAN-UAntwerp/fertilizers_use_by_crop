@@ -7,6 +7,8 @@ from evaluation import feature_importance
 logger = get_logger(__name__)
 config = config_loader.load_config()
 
+# apply shap values. Relevant parameters should be set as environment variables
+
 if __name__ == '__main__':
 
     feature_importance.apply_shap(model_name=os.getenv('MODEL_NAME', 'HistGradientBoostRegressor'),

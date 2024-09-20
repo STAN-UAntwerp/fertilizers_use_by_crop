@@ -13,6 +13,7 @@ from models import estimators
 logger = get_logger(__name__)
 config = config_loader.load_config()
 
+# function to calculate shap values
 def shap_vals(estimator, dataset_x: pd.DataFrame, path = None, it = 1, plot_=True):
     logger.debug(f'Shap values.')
     explainer = shap.KernelExplainer(estimator.model.predict, dataset_x)
@@ -31,6 +32,7 @@ def shap_vals(estimator, dataset_x: pd.DataFrame, path = None, it = 1, plot_=Tru
     return shap_values, dataset_x.index
 
 
+# function to take input data and a model, perform any needed preprocessing, and return shap values
 def apply_shap(model_name: str = 'HistGradientBoostRegressor', fold: int = 0, target: str = 'N_avg_app', 
                filepath: str = '', test: bool = True, subsample_n: int = 0, save: bool = True, 
                resultspath: str = ''):

@@ -149,6 +149,10 @@ def scaler(datasets: list[pd.DataFrame]) -> list[pd.DataFrame]:
 
 def get_data_types(config: DataConfig) -> dict:
 
+    """
+    get data types for reading in csv files
+    """
+
     dtype_cat = {
         key: str for key in config.categorical_var
     }
