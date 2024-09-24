@@ -7,6 +7,6 @@ Available as a preprint [here](https://arxiv.org/abs/2406.10001)
 The repository is organized into the following folders:
 
 * **source**: Contains all the Python code used for the machine learning (ML) models, including dataset preprocessing. It also includes the calculation of SHAP values for model interpretability.
-* **prediction_correctedbyTotals**: Contains the R code used to adjust the ML predictions based on the total fertilizer consumption in each country.
+* **prediction_corrected_byTotals**: Contains the R code used to adjust the ML predictions based on the total fertilizer consumption in each country.
 * **Validation**: Includes Python code for comparing the adjusted ML predictions with national databases.
-* **Map creation**: Contains both Python and R code used to allocate the ML results into spatial resolutions.
+* **Map_Creation**: Contains both Python and R code used to allocate the ML results into spatial resolutions.
