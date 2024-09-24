@@ -1,4 +1,4 @@
-#Loading libraries
+#Loading libraries used in the code 
 rm(list=ls())
 library(terra)      
 library(cshapes)    
@@ -12,10 +12,9 @@ library(ggplot2)
 library(stringr)
  
 
-# Loading maps ------------------------------------------------------------
+# Loading in the data related to the countries as well as the maps from the earlier equation
 pdf_subfolder <- "pdf_output"
 tiff_subfolder <- "tiff_output_final"
-#Countries_R_Codes <- read_csv("../maps_output/Countries_R_cshapes.csv")
 Countries_codes <- read_excel("../maps_output/Countries_R_Codes.xlsx") %>% rename(Area = 1)
 Countries_R_Codes <- read_excel("Other_input/Country_Table.xlsx")
 df_start <- read.csv('FUBC_full_dataset_v3.csv')
@@ -37,7 +36,11 @@ df_start <- df_start %>%
             'Avg_AI_c', 'Avg_ocs_c', 'Avg_cec_c', 'Avg_ph_c', 'Avg_nitrogen_c', 
             'Avg_clay_c', 'Avg_silt_c', 'Avg_sand_c'))
 
+# Loading in the predictions transformed from the earlier python code 
 file_path <- paste0("input/pred_corr_V2.csv")
+
+# Loading in the national boundaries data depending on the relevand dates
+# These are used dynamically in the later code
 df_national_bound_1 <- cshp(date = as.Date("1991-01-01"))
 df_national_bound_2 <- cshp(date = as.Date("1992-11-11"))
 df_national_bound_3 <- cshp(date = as.Date("1993-01-01"))
@@ -45,7 +48,9 @@ df_national_bound_4 <- cshp(date = as.Date("2006-10-10"))
 df_national_bound_5 <- cshp(date = as.Date("2011-01-01"))
 df_national_bound_6 <- cshp(date = as.Date("2012-01-01"))
 
-#Start making maps 
+# Start making maps
+# Here we start by merging the earlier dataframes to have one clean starting point 
+# with all relevant data before the map building 
 nutrient_elements <- c("N", "K2O", "P2O5")
 crop_data_all <- data.frame(
   crop_code = c("1_1", "1_2", "1_3", "1_4", "2_1", "2_2", "2_3", "3_1", "3_2", "4", "5", "6", "7"),
@@ -58,12 +63,18 @@ df_start_unique <- df_start[!duplicated(df_start[c('FAOStat_area_code', 'Crop_Co
 df_predictions_unique <- df_predictions[!duplicated(df_predictions[c('FAOStat_area_code', 'Crop_Code', 'Year')], fromLast = TRUE), ]
 df_predictions <- left_join(df_predictions_unique, df_start_unique, by = c('FAOStat_area_code', 'Crop_Code','Year'))
 
+# Define the output folder 
 folder_path <- "tiff_output_final"
 files <- list.files(folder_path)
 
+# Here we start with the actual map building 
+# We first loop over the different crops 
 for (i in 1:nrow(crop_data_all)) {
   crop <- crop_data_all$crop_code[i]
   crop_name <- crop_data_all$crop_name[i]
+  
+  # Following this we loop over the relevant years (here limited for performance)
+  # And select the correct country boundary map based on the year
   for (year in 1960:1969){
     if (year < 1992) {
       df_national_bound <- df_national_bound_1
@@ -78,9 +89,13 @@ for (i in 1:nrow(crop_data_all)) {
     } else {
       df_national_bound <- df_national_bound_6
     }
+    
+    # Here we fetch the correct map of the crop and year from the EQ1 output (python code)
     file_path_rast <- paste("../make_maps/input/EQ1_", crop_name, "_", year, ".tiff", sep = "")
     file_var_name <- paste("EQ1_", crop_name, "_", year, sep = "")
     eq_1_maps <- rast(file_path_rast)
+    
+    # Here we extract the country borders
     Area_M_Sum <- terra::extract(eq_1_maps,df_national_bound,sum) 
     Area_M_Sum$Area <- df_national_bound$country_name 
     Area_M_Sum <- Area_M_Sum %>% left_join(., Countries_codes, by = "Area") 
@@ -97,11 +112,17 @@ for (i in 1:nrow(crop_data_all)) {
       rasters_boundaries[[c]] <- coverage
       rasters_boundaries[[c]]$country_name <- Country$country_name
     }
+    
+    # Here we join the map with the predictions and calculate the division of the predictions compared to the 
+    # FAOSTAT area in order to correct for country level differences 
+    # If the division is impossible (no value in one or the other) it just takes 1 and keeps the values
     df_predictions_crop_year <- df_predictions %>% filter(Year == year & Crop_Code == crop)
     df_predictions_crop_year$division_result <- df_predictions_crop_year$Area_FAOStat / df_predictions_crop_year[[file_var_name]]
     df_predictions_crop_year$division_result <- ifelse(is.na(df_predictions_crop_year$division_result) 
                                                        | is.infinite(df_predictions_crop_year$division_result), 
                                                        1, df_predictions_crop_year$division_result)
+    
+    # Here we then move towards the actual output for each fertilizer 
     for (element in nutrient_elements) {
       filename <- paste(crop_name, "_", element, "_", year, ".tiff", sep = "")
       if (filename %in% files) {
@@ -112,6 +133,8 @@ for (i in 1:nrow(crop_data_all)) {
       print(year)
       print(crop_name)
       crop_F_c <- list()
+      
+      # Where we use the various raster boundaries/countries and the corrected EQ1 maps (based on faostat data)
       for (i in 1:length(rasters_boundaries)){
         country_name <- rasters_boundaries[[i]]$country_name[1]$country_name
         if (is.factor(country_name) && length(levels(country_name)) == 1) {
@@ -124,6 +147,8 @@ for (i in 1:nrow(crop_data_all)) {
         if (nrow(df_country_year) > 1){
           df_country_year <- df_country_year[1, ]
         }
+        # In the step below we then calculate the cell value based on the corrected maps and the predictions 
+        # we generated from the ML model 
         if (nrow(df_country_year) != 0){
           eq_1_maps_M <- (eq_1_maps_c * rasters_boundaries[[i]]$lyr.1 * df_country_year$division_result)
           crop_F_c[i] <- (eq_1_maps_M * rasters_boundaries[[i]]$lyr.1 *
@@ -133,6 +158,8 @@ for (i in 1:nrow(crop_data_all)) {
           crop_F_c[i] <- (eq_1_maps_M * 0)
         }
       }
+      
+      # The last few steps are for saving the map in a correct format and naming convention
       crop_F <- crop_F_c[[1]]
       e <- ext(-180, 180, -90, 90)
       crop_F <- extend(crop_F, e)
