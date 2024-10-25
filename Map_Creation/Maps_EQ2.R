@@ -10,7 +10,11 @@ library(ncdf4)
 library(sf)
 library(ggplot2)
 library(stringr)
- 
+
+e_final <- ext(-180, 180, -90, 90)
+res_final <- 0.08333333  
+new_raster_final <- rast(ext = e_final, resolution = res_final)
+cell_size_ha_final <- cellSize(new_raster_final, unit = "ha")
 
 # Loading in the data related to the countries as well as the maps from the earlier equation
 pdf_subfolder <- "pdf_output"
@@ -56,6 +60,7 @@ crop_data_all <- data.frame(
   crop_code = c("1_1", "1_2", "1_3", "1_4", "2_1", "2_2", "2_3", "3_1", "3_2", "4", "5", "6", "7"),
   crop_name = c("Wheat", "Maize", "Rice", "Other Cereals", "Soybean", "Palm Oil fruit", "Other Oilseeds", "Vegetables", "Fruits", "Roots and tubers", "Sugar crops", "Fiber crops", "Other crops")
 )
+
 df_predictions <- read_csv(file_path) %>%
   select(FAOStat_area_code, Year, predicted_N_avg_app, predicted_K2O_avg_app,predicted_P2O5_avg_app, Crop_Code)
 df_predictions <- left_join(df_predictions, Countries_R_Codes, by = "FAOStat_area_code")
@@ -67,6 +72,43 @@ df_predictions <- left_join(df_predictions_unique, df_start_unique, by = c('FAOS
 folder_path <- "tiff_output_final"
 files <- list.files(folder_path)
 
+# Function to redistribute excess values to neighboring cells
+redistribute_excess <- function(eq_map, max_map, name) {
+  # Calculate the difference map: positive values indicate excess
+  diff_map <- eq_map - max_map
+  # Identify excess: cells where the difference is positive
+  excess_cells <- diff_map > 0
+  # Mask to keep only cells with excess
+  diff_map_excess <- terra::mask(diff_map, excess_cells, maskvalue = FALSE) 
+  # For cells with excess, cap their values to the maximum
+  eq_map[excess_cells] <- max_map[excess_cells]
+  # Calculate the total excess that needs redistribution
+  total_excess <- global(diff_map_excess, fun = 'sum', na.rm = TRUE)
+  
+  # Check if the total excess is valid (positive)
+  if (!is.na(total_excess) && total_excess > 0) {
+    
+    # Find cells that can receive the excess (non-zero cells that are below their max)
+    valid_cells <- eq_map > 0 & eq_map < max_map
+
+    # Calculate proportionate redistribution
+    total_valid_cells <- sum(valid_cells, na.rm = TRUE)
+    total_excess_cells <- global(valid_cells, fun = 'sum', na.rm = TRUE)
+    proportion <- total_excess/total_excess_cells
+    proportion_value <- proportion[name, "sum"]
+    eq_map[valid_cells] <- eq_map[valid_cells] + proportion_value
+    
+    # Ensure no cell exceeds its maximum after redistribution
+    diff_map <- eq_map - max_map
+    # Identify excess: cells where the difference is positive
+    excess_cells <- diff_map > 0
+    eq_map[excess_cells] <- max_map[excess_cells]
+  }
+  
+  return(eq_map)
+}
+
+
 # Here we start with the actual map building 
 # We first loop over the different crops 
 for (i in 1:nrow(crop_data_all)) {
@@ -75,7 +117,7 @@ for (i in 1:nrow(crop_data_all)) {
   
   # Following this we loop over the relevant years (here limited for performance)
   # And select the correct country boundary map based on the year
-  for (year in 1960:1969){
+  for (year in 1961:2019){
     if (year < 1992) {
       df_national_bound <- df_national_bound_1
     } else if (year == 1992) {
@@ -129,9 +171,9 @@ for (i in 1:nrow(crop_data_all)) {
         next
       }
       predicted <- paste0("predicted_", element, "_avg_app")
-      print(element)
       print(year)
       print(crop_name)
+      print(element)
       crop_F_c <- list()
       
       # Where we use the various raster boundaries/countries and the corrected EQ1 maps (based on faostat data)
@@ -151,8 +193,9 @@ for (i in 1:nrow(crop_data_all)) {
         # we generated from the ML model 
         if (nrow(df_country_year) != 0){
           eq_1_maps_M <- (eq_1_maps_c * rasters_boundaries[[i]]$lyr.1 * df_country_year$division_result)
-          crop_F_c[i] <- (eq_1_maps_M * rasters_boundaries[[i]]$lyr.1 *
-                            df_country_year[[predicted]]) / cellSize(eq_1_maps_M, unit = "ha")
+          eq_1_maps_MM <- redistribute_excess(eq_1_maps_M, crop(cell_size_ha_final, rasters_boundaries[[i]]$lyr.1),file_var_name)
+          crop_F_c[i] <- (eq_1_maps_MM * rasters_boundaries[[i]]$lyr.1 * 
+                            df_country_year[[predicted]]) / cellSize(eq_1_maps_MM, unit = "ha")
         } else {
           eq_1_maps_M <- (eq_1_maps_c * 1)
           crop_F_c[i] <- (eq_1_maps_M * 0)
@@ -164,7 +207,7 @@ for (i in 1:nrow(crop_data_all)) {
       e <- ext(-180, 180, -90, 90)
       crop_F <- extend(crop_F, e)
       for (i in 2:length(crop_F_c)){
-        crop_F <-  mosaic(crop_F, crop_F_c[[i]], fun = sum)
+        crop_F <-  mosaic(crop_F, crop_F_c[[i]], fun = "sum")
       }
       crop_F <- subst(crop_F , NaN, 0)
       save_name_raster <- paste(crop_name, "_", element, "_", year, "_", crop, sep = "")
@@ -175,5 +218,3 @@ for (i in 1:nrow(crop_data_all)) {
     }
   }
 }
-
-
