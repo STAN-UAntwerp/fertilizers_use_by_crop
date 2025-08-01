@@ -1,8 +1,10 @@
-This repository contains the code developed for the following paper (currently under review at Scientific Data):
+This repository contains the code developed for the following paper:
 
-Coello, Fernando, Thomas Decorte, Iris Janssens, Steven Mortier, Jordi Sardans, Josep Peñuelas and Tim Verdonck. *Global Crop-Specific Fertilization Dataset from 1961-2019.* (2024).
+Fernando Coello*, Thomas Decorte*, Iris Janssens, Steven Mortier, Jordi Sardans, Josep Peñuelas and Tim Verdonck. *Global Crop-Specific Fertilization Dataset from 1961-2019.* Sci Data 12, 40 (2025). https://doi.org/10.1038/s41597-024-04215-x
 
-Available as a preprint [here](https://arxiv.org/abs/2406.10001)
+\* *Fernando Coello and Thomas Decorte contributed equally to this work*
+
+___
 
 The repository is organized into the following folders:
 
